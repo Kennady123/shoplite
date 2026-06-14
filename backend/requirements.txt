@@ -1,0 +1,9 @@
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+pydantic==2.7.1
+sqlalchemy==2.0.50
+pymysql==1.2.0
+python-dotenv==1.2.2
+python-jose==3.5.0
+razorpay==2.0.1
+cryptography
