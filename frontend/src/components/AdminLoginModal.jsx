@@ -1,54 +1,31 @@
 import { useState } from "react";
+import s from "../css/AdminLoginModal.module.css";
 
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 
-export function AdminLoginModal({
-  onClose,
-  onLoginSuccess,
-}) {
+export function AdminLoginModal({ onClose, onLoginSuccess }) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleLogin = async () => {
     try {
       setLoading(true);
       setError("");
 
-      const res = await fetch(
-        `${API_BASE}/admin/login`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
-          body: JSON.stringify({
-            email,
-            password,
-          }),
-        }
-      );
+      const res = await fetch(`${API_BASE}/admin/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
       if (!res.ok) {
-        throw new Error(
-          "Invalid credentials"
-        );
+        throw new Error("Invalid credentials");
       }
 
       const data = await res.json();
-
-      localStorage.setItem(
-        "admin_token",
-        data.access_token
-      );
-
+      localStorage.setItem("admin_token", data.access_token);
       onLoginSuccess();
     } catch (err) {
       setError(err.message);
@@ -58,60 +35,36 @@ export function AdminLoginModal({
   };
 
   return (
-    <div className="admin-overlay">
-      <div className="admin-modal">
-
-        <h2 className="admin-title">
-          Admin Login
-        </h2>
+    <div className={s.adminOverlay}>
+      <div className={s.adminModal}>
+        <h2 className={s.adminTitle}>Admin Login</h2>
 
         <input
-          className="admin-input"
+          className={s.adminInput}
           type="email"
           placeholder="Email"
           value={email}
-          onChange={(e) =>
-            setEmail(e.target.value)
-          }
+          onChange={(e) => setEmail(e.target.value)}
         />
 
         <input
-          className="admin-input"
+          className={s.adminInput}
           type="password"
           placeholder="Password"
           value={password}
-          onChange={(e) =>
-            setPassword(
-              e.target.value
-            )
-          }
+          onChange={(e) => setPassword(e.target.value)}
         />
 
-        {error && (
-          <p className="admin-error">
-            {error}
-          </p>
-        )}
+        {error && <p className={s.adminError}>{error}</p>}
 
-        <div className="admin-actions">
-          <button
-            className="btn-secondary"
-            onClick={onClose}
-          >
+        <div className={s.adminActions}>
+          <button className={s.btnSecondary} onClick={onClose}>
             Cancel
           </button>
-
-          <button
-            className="btn-primary"
-            disabled={loading}
-            onClick={handleLogin}
-          >
-            {loading
-              ? "Logging In..."
-              : "Login"}
+          <button className={s.btnPrimary} disabled={loading} onClick={handleLogin}>
+            {loading ? "Logging In..." : "Login"}
           </button>
         </div>
-
       </div>
     </div>
   );

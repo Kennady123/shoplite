@@ -1,4 +1,5 @@
 import { formatINR } from "../utils/format";
+import { useState, useEffect, useRef } from "react";
 
 function CartItem({ item, onIncrease, onDecrease, onRemove }) {
   return (
@@ -35,7 +36,54 @@ export function CartPanel({
   paying,
   paymentError,
   onClose,
+  user,
+  onOpenLogin,
 }) {
+  const [loginMsg, setLoginMsg]   = useState(false);
+  const [countdown, setCountdown] = useState(3);
+  const timerRef                  = useRef(null);
+
+  const handleCheckout = () => {
+    if (!user) {
+      setLoginMsg(true);
+      setCountdown(3);
+      return;
+    }
+    onCheckout();
+  };
+
+  // Countdown logic
+  useEffect(() => {
+    if (!loginMsg) return;
+
+    // Clear any existing timer
+    if (timerRef.current) clearInterval(timerRef.current);
+
+    let count = 3;
+    setCountdown(count);
+
+    timerRef.current = setInterval(() => {
+      count -= 1;
+      setCountdown(count);
+
+      if (count <= 0) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+        setLoginMsg(false);
+
+        // FIX: open login FIRST, then close cart
+        // Because onClose unmounts this component —
+        // anything after it won't run
+        onOpenLogin();  // ← open login popup first
+        onClose();      // ← then close cart
+      }
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [loginMsg]);
+
   return (
     <aside className="cart-panel">
       <div className="cart-drag-handle"><span /></div>
@@ -87,7 +135,37 @@ export function CartPanel({
               <span>{formatINR(grandTotal)}</span>
             </div>
 
-            {/* Payment error message */}
+            {loginMsg && (
+              <div style={{
+                background: "rgba(167, 139, 250, 0.1)",
+                border: "1px solid #a78bfa",
+                borderRadius: "10px",
+                padding: "12px 14px",
+                marginBottom: "12px",
+                textAlign: "center",
+                lineHeight: "1.7",
+              }}>
+                <span style={{ fontSize: "1rem" }}>🔐</span>
+                <span style={{
+                  display: "block",
+                  fontSize: "0.88rem",
+                  fontWeight: "600",
+                  color: "#c4b5fd",
+                  marginTop: "4px",
+                }}>
+                  Please login to continue
+                </span>
+                <span style={{
+                  display: "block",
+                  fontSize: "0.78rem",
+                  color: "#a78bfa",
+                  marginTop: "4px",
+                }}>
+                  Taking you to login in {countdown}s...
+                </span>
+              </div>
+            )}
+
             {paymentError && (
               <div className="payment-error">
                 ⚠️ {paymentError}
@@ -96,8 +174,8 @@ export function CartPanel({
 
             <button
               className={`btn-checkout ${paying ? "btn-paying" : ""}`}
-              onClick={onCheckout}
-              disabled={paying}
+              onClick={handleCheckout}
+              disabled={paying || loginMsg}
             >
               {paying ? "Processing…" : "Proceed to Checkout →"}
             </button>

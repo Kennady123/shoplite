@@ -13,12 +13,15 @@ router = APIRouter()
 KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
 
+# FIX: If keys are missing, crash loud at startup instead of silently failing
+if not KEY_ID or not KEY_SECRET:
+    raise RuntimeError("RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be set in .env file!")
+
 client = razorpay.Client(auth=(KEY_ID, KEY_SECRET))
 
 
-# ── Request models ──────────────────────────────────────────
 class CreateOrderRequest(BaseModel):
-    amount: float        # in INR  e.g. 1500.00
+    amount: float
     currency: str = "INR"
 
 
@@ -28,41 +31,38 @@ class VerifyPaymentRequest(BaseModel):
     razorpay_signature: str
 
 
-# ── POST /api/create-order ──────────────────────────────────
 @router.post("/create-order")
 def create_order(data: CreateOrderRequest):
+    # FIX: Validate amount is positive
+    if data.amount <= 0:
+        raise HTTPException(status_code=400, detail="Amount must be greater than 0")
     try:
         order = client.order.create({
-            "amount": int(data.amount * 100),   # convert ₹ to paise
+            "amount": int(data.amount * 100),  # convert ₹ to paise
             "currency": data.currency,
-            "payment_capture": 1,               # auto-capture payment
+            "payment_capture": 1,              # auto-capture payment
         })
         return {
             "order_id": order["id"],
             "amount": order["amount"],
             "currency": order["currency"],
-            "key_id": KEY_ID,                   # frontend needs this to open popup
+            "key_id": KEY_ID,                  # frontend needs this to open popup
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Order creation failed: {str(e)}")
 
 
-# ── POST /api/verify-payment ────────────────────────────────
 @router.post("/verify-payment")
 def verify_payment(data: VerifyPaymentRequest):
-
     try:
-        # Build the message Razorpay signed
         message = f"{data.razorpay_order_id}|{data.razorpay_payment_id}"
 
-        # Recompute HMAC-SHA256 using our secret key
         expected_signature = hmac.new(
             KEY_SECRET.encode("utf-8"),
             message.encode("utf-8"),
             hashlib.sha256
         ).hexdigest()
 
-        # Compare — use hmac.compare_digest to prevent timing attacks
         if not hmac.compare_digest(expected_signature, data.razorpay_signature):
             raise HTTPException(status_code=400, detail="Invalid payment signature")
 

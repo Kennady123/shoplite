@@ -1,0 +1,106 @@
+.adminOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 1rem;
+}
+
+.adminModal {
+  background: #1a1a24;
+  border: 1px solid #2a2a38;
+  border-radius: 18px;
+  width: 100%;
+  max-width: 380px;
+  padding: 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+  animation: fadeScale 0.2s ease;
+}
+
+@keyframes fadeScale {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.adminTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #f0f0f8;
+  margin: 0 0 0.25rem;
+  text-align: center;
+}
+
+.adminInput {
+  width: 100%;
+  background: #13131a;
+  border: 1px solid #2a2a38;
+  border-radius: 10px;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.88rem;
+  color: #e8e8f0;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.adminInput::placeholder { color: #4a4a60; }
+.adminInput:focus { border-color: #a78bfa; }
+
+.adminError {
+  color: #f87171;
+  font-size: 0.8rem;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
+  border-radius: 8px;
+  padding: 0.5rem 0.875rem;
+  margin: 0;
+}
+
+.adminActions {
+  display: flex;
+  gap: 0.625rem;
+  margin-top: 0.25rem;
+}
+
+.btnPrimary {
+  flex: 1;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  border: none;
+  color: #fff;
+  padding: 0.7rem 1.25rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.86rem;
+  font-family: inherit;
+  transition: opacity 0.18s;
+}
+
+.btnPrimary:hover { opacity: 0.88; }
+.btnPrimary:disabled { cursor: not-allowed; opacity: 0.6; }
+
+.btnSecondary {
+  flex: 1;
+  background: #2a2a38;
+  border: 1px solid #3a3a50;
+  color: #c8c8d8;
+  padding: 0.7rem 1.25rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.86rem;
+  font-family: inherit;
+  transition: background 0.15s;
+}
+
+.btnSecondary:hover { background: #3a3a50; }
+
+@media (max-width: 480px) {
+  .adminModal { padding: 1.25rem; }
+  .adminActions { flex-direction: column-reverse; }
+}
