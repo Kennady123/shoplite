@@ -52,7 +52,6 @@ export function WishlistPage({ onAddToCart, isInCart }) {
       setLoading(true);
       setError(null);
       try {
-        // Get saved IDs from localStorage
         const saved = JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]");
         const ids = saved.map((p) => (typeof p === "object" ? p.id : p));
 
@@ -61,7 +60,6 @@ export function WishlistPage({ onAddToCart, isInCart }) {
           return;
         }
 
-        // Fetch fresh product data from API for each ID
         const results = await Promise.all(
           ids.map((id) =>
             fetch(`${API_BASE}/products/${id}`)
@@ -105,6 +103,8 @@ export function WishlistPage({ onAddToCart, isInCart }) {
 
   const handleShare = async (item) => {
     const url = `${window.location.origin}/product/${item.id}`;
+
+    // 1. Native share (mobile/supported browsers)
     if (navigator.share) {
       try {
         await navigator.share({ title: item.name, url });
@@ -113,13 +113,19 @@ export function WishlistPage({ onAddToCart, isInCart }) {
         // user cancelled, fall through
       }
     }
+
+    // 2. Clipboard copy (desktop)
     try {
       await navigator.clipboard.writeText(url);
       setCopiedId(item.id);
       setTimeout(() => setCopiedId(null), 2000);
+      return;
     } catch {
       // clipboard unavailable
     }
+
+    // 3. Final fallback — always works
+    window.prompt("Copy this link:", url);
   };
 
   return (
@@ -196,7 +202,7 @@ export function WishlistPage({ onAddToCart, isInCart }) {
                   )}
 
                   {copiedId === item.id && (
-                    <div className={styles.toast}>Link copied</div>
+                    <div className={styles.toast}>Link copied ✓</div>
                   )}
                 </div>
 

@@ -17,7 +17,11 @@ function HeartIcon({ filled }) {
 function ShareIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 19c0-5 4-9 9-9V6l8 6-8 6v-4c-5 0-7.5 1.5-9 5Z" />
+      <circle cx="18" cy="5" r="3" />
+      <circle cx="6" cy="12" r="3" />
+      <circle cx="18" cy="19" r="3" />
+      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
     </svg>
   );
 }
@@ -60,24 +64,20 @@ export function ProductDetailPage({ onAddToCart, isInCart }) {
         if (active) setLoading(false);
       });
 
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [id]);
 
   useEffect(() => {
     try {
       const saved = JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]");
-      setWishlisted(saved.includes(id));
+      setWishlisted(saved.some((p) => String(p.id) === String(id)));
     } catch {
       setWishlisted(false);
     }
   }, [id]);
 
   useEffect(() => {
-    const onKey = (e) => {
-      if (e.key === "Escape") navigate(-1);
-    };
+    const onKey = (e) => { if (e.key === "Escape") navigate(-1); };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [navigate]);
@@ -85,40 +85,46 @@ export function ProductDetailPage({ onAddToCart, isInCart }) {
   const toggleWishlist = () => {
     try {
       const saved = JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]");
-      const updated = wishlisted
-        ? saved.filter((pid) => pid !== id)
-        : [...saved, id];
+      const exists = saved.some((p) => String(p.id) === String(id));
+      const updated = exists
+        ? saved.filter((p) => String(p.id) !== String(id))
+        : [...saved, product];
       localStorage.setItem(WISHLIST_KEY, JSON.stringify(updated));
       setWishlisted(!wishlisted);
     } catch {
-      // localStorage unavailable, ignore
+      // ignore
     }
   };
 
   const handleShare = async () => {
     const url = window.location.href;
+
+    // 1. Native share (mobile/supported browsers)
     if (navigator.share) {
       try {
         await navigator.share({ title: product?.name, url });
         return;
       } catch {
-        // user cancelled or share failed, fall through to copy
+        // user cancelled, fall through
       }
     }
+
+    // 2. Clipboard copy (desktop)
     try {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      return;
     } catch {
       // clipboard unavailable
     }
+
+    // 3. Final fallback — always works
+    window.prompt("Copy this link:", url);
   };
 
   const closePopup = () => navigate(-1);
-
-  const handleBackdropClick = (e) => {
-    if (e.target === e.currentTarget) closePopup();
-  };
+  const handleBackdropClick = (e) => { if (e.target === e.currentTarget) closePopup(); };
 
   return (
     <div className={styles.backdrop} onClick={handleBackdropClick}>
@@ -138,9 +144,7 @@ export function ProductDetailPage({ onAddToCart, isInCart }) {
           <div className={styles.stateBox}>
             <p>Could not load product.</p>
             {error && <code>{error}</code>}
-            <button className={styles.btnOutline} onClick={closePopup}>
-              Close
-            </button>
+            <button className={styles.btnOutline} onClick={closePopup}>Close</button>
           </div>
         )}
 
@@ -172,7 +176,7 @@ export function ProductDetailPage({ onAddToCart, isInCart }) {
                 <span className={styles.emoji}>{product.image_emoji || "📦"}</span>
               )}
 
-              {copied && <div className={styles.toast}>Link copied</div>}
+              {copied && <div className={styles.toast}>Link copied ✓</div>}
             </div>
 
             <div className={styles.info}>
