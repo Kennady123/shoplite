@@ -14,7 +14,7 @@ import Hamburger from "./components/Hamburger";
 import SellerDashboard from "./Sellers/SellerDashboard";
 import "./App.css";
 import { ProductDetailPage } from "./components/Productdetailpage";
-import  {WishlistPage}  from "./components/WishlistPage";  // ← add this
+import  {WishlistPage}  from "./components/WishlistPage";  
 
 export default function App() {
   const navigate = useNavigate();
