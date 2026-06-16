@@ -13,7 +13,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import Hamburger from "./components/Hamburger";
 import SellerDashboard from "./Sellers/SellerDashboard";
 import "./App.css";
-import { ProductDetailPage } from "./components/Productdetailpage";
+import { ProductDetailPage } from "./components/ProductDetailPage";
 import  {WishlistPage}  from "./components/WishlistPage";  
 
 export default function App() {
