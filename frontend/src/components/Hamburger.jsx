@@ -15,6 +15,10 @@ const Hamburger = ({ onProductAdded, onOpenLogin, onAdminLoginSuccess }) => {
   const [showSellerRegister, setShowSellerRegister] = useState(false);
 
   const token = localStorage.getItem("token");
+  const goTo = (path) => {
+    setIsMenuOpen(false);
+    navigate(path);
+  }
 
   return (
     <>
@@ -43,7 +47,9 @@ const Hamburger = ({ onProductAdded, onOpenLogin, onAdminLoginSuccess }) => {
           <button className="menu-item">💻 Laptops</button>
           <button className="menu-item">🎧 Accessories</button>
           <button className="menu-item">📦 Orders</button>
-          <button className="menu-item">❤️ Wishlist</button>
+          <button className="menu-item" onClick={() => goTo("/wishlist")}>
+            ❤️ Wishlist
+          </button>
 
           <button
             className="menu-item"

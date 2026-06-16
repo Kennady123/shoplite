@@ -55,12 +55,17 @@ export function useCart() {
   const clearCart = () => setCart([]);
 
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const subtotal = cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
+
+  // GST is already included in the displayed price (price * 1.18).
+  // grandTotal = sum of GST-inclusive prices.
+  // tax = the GST portion extracted from grandTotal (for display breakdown).
+  // subtotal = the base price portion (grandTotal minus tax).
+  const grandTotal = cart.reduce(
+    (sum, item) => sum + item.price * 1.18 * item.quantity,
     0
   );
-  const tax = subtotal * 0.18;
-  const grandTotal = subtotal + tax;
+  const tax = grandTotal - grandTotal / 1.18;
+  const subtotal = grandTotal - tax;
 
   const isInCart = (productId) => cart.some((item) => item.id === productId);
 

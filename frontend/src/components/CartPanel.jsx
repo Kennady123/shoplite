@@ -2,12 +2,16 @@ import { formatINR } from "../utils/format";
 import { useState, useEffect, useRef } from "react";
 
 function CartItem({ item, onIncrease, onDecrease, onRemove }) {
+  // item.price is the raw base price stored in cart.
+  // Multiply by 1.18 for the GST-inclusive display price.
+  const itemPrice = item.price * 1.18;
+
   return (
     <div className="cart-item">
       <span className="cart-item-emoji">{item.image_emoji}</span>
       <div className="cart-item-info">
         <p className="cart-item-name">{item.name}</p>
-        <p className="cart-item-unit">{formatINR(item.price)} each</p>
+        <p className="cart-item-unit">{formatINR(itemPrice)} each</p>
       </div>
       <div className="cart-item-controls">
         <button className="qty-btn" onClick={() => onDecrease(item.id)}>−</button>
@@ -15,7 +19,7 @@ function CartItem({ item, onIncrease, onDecrease, onRemove }) {
         <button className="qty-btn" onClick={() => onIncrease(item.id)}>+</button>
       </div>
       <div className="cart-item-right">
-        <p className="cart-item-total">{formatINR(item.price * item.quantity)}</p>
+        <p className="cart-item-total">{formatINR(itemPrice * item.quantity)}</p>
         <button className="remove-btn" onClick={() => onRemove(item.id)} title="Remove">✕</button>
       </div>
     </div>
@@ -56,7 +60,6 @@ export function CartPanel({
   useEffect(() => {
     if (!loginMsg) return;
 
-    // Clear any existing timer
     if (timerRef.current) clearInterval(timerRef.current);
 
     let count = 3;
@@ -71,11 +74,8 @@ export function CartPanel({
         timerRef.current = null;
         setLoginMsg(false);
 
-        // FIX: open login FIRST, then close cart
-        // Because onClose unmounts this component —
-        // anything after it won't run
-        onOpenLogin();  // ← open login popup first
-        onClose();      // ← then close cart
+        onOpenLogin();
+        onClose();
       }
     }, 1000);
 
@@ -122,11 +122,11 @@ export function CartPanel({
 
           <div className="cart-summary">
             <div className="summary-row">
-              <span>Subtotal</span>
+              <span>Subtotal (excl. GST)</span>
               <span>{formatINR(subtotal)}</span>
             </div>
             <div className="summary-row">
-              <span>GST (18%)</span>
+              <span>GST (18% incl.)</span>
               <span>{formatINR(tax)}</span>
             </div>
             <div className="summary-divider" />

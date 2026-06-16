@@ -13,13 +13,14 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import Hamburger from "./components/Hamburger";
 import SellerDashboard from "./Sellers/SellerDashboard";
 import "./App.css";
+import { ProductDetailPage } from "./components/Productdetailpage";
+import  {WishlistPage}  from "./components/WishlistPage";  // ← add this
 
 export default function App() {
   const navigate = useNavigate();
   const { products, loading, error, refetch } = useProducts();
   const [isCartOpen, setIsCartOpen] = useState(false);
 
-  // ── Auth ──────────────────────────────────────────────────
   const [user, setUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
@@ -176,7 +177,6 @@ export default function App() {
               />
             )}
 
-            {/* LOGIN */}
             {showLogin && (
               <Login
                 onSuccess={handleLoginSuccess}
@@ -188,7 +188,6 @@ export default function App() {
               />
             )}
 
-            {/* REGISTER */}
             {showRegister && (
               <Register
                 onSuccess={() => {}}
@@ -200,7 +199,6 @@ export default function App() {
               />
             )}
 
-            {/* PROFILE */}
             {showProfile && (
               <Profile
                 user={user}
@@ -221,23 +219,34 @@ export default function App() {
           </div>
         }
       />
+
       <Route
-  path="/admin"
-  element={
-    <AdminDashboard
-      onClose={() => navigate("/")}
-      onProductAdded={() => {
-        if (refetch) refetch();
-      }}
-      onSessionExpired={() => {
-        localStorage.removeItem("admin_token");
-        navigate("/");
-      }}
-    />
-  }
-/>
-<Route path="/seller-dashboard" element={<SellerDashboard />} />
+        path="/admin"
+        element={
+          <AdminDashboard
+            onClose={() => navigate("/")}
+            onProductAdded={() => { if (refetch) refetch(); }}
+            onSessionExpired={() => {
+              localStorage.removeItem("admin_token");
+              navigate("/");
+            }}
+          />
+        }
+      />
+
       <Route path="/seller-dashboard" element={<SellerDashboard />} />
+
+      <Route
+        path="/product/:id"
+        element={<ProductDetailPage onAddToCart={addToCart} isInCart={isInCart} />}
+      />
+
+      {/* ── Wishlist route ── */}
+      <Route
+        path="/wishlist"
+        element={<WishlistPage onAddToCart={addToCart} isInCart={isInCart} />}
+      />
+
     </Routes>
   );
 }
