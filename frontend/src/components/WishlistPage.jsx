@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { formatINR } from "../utils/format";
 import styles from "../css/WishlistPage.module.css";
 
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000/api";
 const WISHLIST_KEY = "shoplite_wishlist";
 
 function HeartIcon({ filled }) {
@@ -42,18 +43,42 @@ export function WishlistPage({ onAddToCart, isInCart }) {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [removing, setRemoving] = useState(new Set());
   const [copiedId, setCopiedId] = useState(null);
 
   useEffect(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]");
-      setItems(saved);
-    } catch {
-      setItems([]);
-    } finally {
-      setLoading(false);
-    }
+    const loadWishlist = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // Get saved IDs from localStorage
+        const saved = JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]");
+        const ids = saved.map((p) => (typeof p === "object" ? p.id : p));
+
+        if (ids.length === 0) {
+          setItems([]);
+          return;
+        }
+
+        // Fetch fresh product data from API for each ID
+        const results = await Promise.all(
+          ids.map((id) =>
+            fetch(`${API_BASE}/products/${id}`)
+              .then((res) => (res.ok ? res.json() : null))
+              .catch(() => null)
+          )
+        );
+
+        setItems(results.filter(Boolean));
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadWishlist();
   }, []);
 
   const removeFromWishlist = (productId) => {
@@ -61,7 +86,10 @@ export function WishlistPage({ onAddToCart, isInCart }) {
     setTimeout(() => {
       try {
         const saved = JSON.parse(localStorage.getItem(WISHLIST_KEY) || "[]");
-        const updated = saved.filter((p) => String(p.id) !== String(productId));
+        const updated = saved.filter((p) => {
+          const id = typeof p === "object" ? p.id : p;
+          return String(id) !== String(productId);
+        });
         localStorage.setItem(WISHLIST_KEY, JSON.stringify(updated));
       } catch {
         // ignore
@@ -116,11 +144,17 @@ export function WishlistPage({ onAddToCart, isInCart }) {
         </div>
       )}
 
-      {!loading && items.length === 0 && (
+      {!loading && error && (
+        <div className={styles.stateBox}>
+          <p className={styles.errorText}>Could not load wishlist.</p>
+        </div>
+      )}
+
+      {!loading && !error && items.length === 0 && (
         <EmptyWishlist onBrowse={() => navigate("/")} />
       )}
 
-      {!loading && items.length > 0 && (
+      {!loading && !error && items.length > 0 && (
         <div className={styles.grid}>
           {items.map((item) => {
             const inCart = isInCart?.(item.id);
